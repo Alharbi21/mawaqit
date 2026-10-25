@@ -72,6 +72,8 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.9rem;margin:0;color:
 .conv-in label{font-size:.85rem;color:var(--muted)}
 .conv input,.conv select{font:inherit;font-size:1rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
 .conv input:focus-visible,.conv select:focus-visible{outline:2px solid var(--sea);outline-offset:1px}
+.conv-btn{align-self:stretch;background:var(--sea);color:var(--surface);border-color:var(--sea);font-weight:600;font-size:1.05rem;padding:10px 18px;border-radius:12px}
+.conv-btn:hover{opacity:.9}
 .hsel{display:grid;grid-template-columns:4.5em 1fr 6em;gap:8px}
 .conv-out{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:6px}
 .conv-out .res{font-family:var(--f-display);font-size:1.5rem;color:var(--sea);line-height:1.3}
@@ -154,6 +156,7 @@ footer{text-align:center;font-size:.82rem;color:var(--muted);border-top:1px soli
         <input type="number" id="hYear" inputmode="numeric" min="1356" max="1500" aria-label="السنة">
       </div>
     </div>
+    <button id="convBtn" class="conv-btn" type="button">🔄 حوّل التاريخ</button>
     <div class="conv-out" id="convOut"></div>
   </section>
 
@@ -356,6 +359,7 @@ setCal(cal);
     document.getElementById("inG").hidden=md!=="g";document.getElementById("inH").hidden=md!=="h";run();}
   document.getElementById("modeG").onclick=()=>setMode("g");
   document.getElementById("modeH").onclick=()=>setMode("h");
+  document.getElementById("convBtn").onclick=()=>{run();out.scrollIntoView({behavior:"smooth",block:"nearest"});};
   [gDate,hDay,hMon,hYear].forEach(el=>{el.addEventListener("input",run);el.addEventListener("change",run);});
   run();
 })();
