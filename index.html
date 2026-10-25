@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>مواقيت القنفذة</title>
+<meta name="description" content="مواقيت الصلاة في القنفذة حسب تقويم أم القرى، مع عدّاد للصلاة القادمة وجدول الشهر">
+<meta name="theme-color" content="#0f6b70">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<style>
+/* تخطيط: بطاقة الصلاة القادمة + شريط اليوم، ثم جدول الشهر */
+:root{
+  --bg:#f5f2ea; --surface:#fffdf8; --ink:#16353a; --muted:#5d7377;
+  --sea:#0f6b70; --dusk:#c8643b; --line:#ddd6c6; --today:#e4efe9;
+  --f-display:"Reem Kufi","IBM Plex Sans Arabic",Tahoma,sans-serif;
+  --f-body:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1a1c; --surface:#142427; --ink:#e7efe9; --muted:#97aeab;
+  --sea:#5cc2bd; --dusk:#ee9467; --line:#28403f; --today:#1d3a37; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1a1c; --surface:#142427; --ink:#e7efe9; --muted:#97aeab;
+  --sea:#5cc2bd; --dusk:#ee9467; --line:#28403f; --today:#1d3a37; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;direction:rtl;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+.wrap{max-width:760px;margin:0 auto;padding-block:24px 40px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-direction:column;gap:2px}
+h1{font-family:var(--f-display);font-weight:700;font-size:1.9rem;margin:0;color:var(--sea);text-wrap:balance}
+.sub{color:var(--muted);font-size:.92rem}
+.sub strong{color:var(--ink);font-weight:600}
+.hrow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.cal-switch{display:flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px}
+.cal-switch svg{width:20px;height:20px;margin:0 6px;fill:none;stroke:var(--sea);stroke-width:1.8;stroke-linecap:round}
+.cal-switch button{border:0;border-radius:9px;padding:5px 14px;background:transparent;color:var(--muted)}
+.cal-switch button[aria-pressed="true"]{background:var(--sea);color:var(--surface);font-weight:600}
+.next{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.next-top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.lbl{font-size:.8rem;color:var(--muted);letter-spacing:.02em}
+.nname{font-family:var(--f-display);font-size:2.4rem;line-height:1.1;color:var(--ink)}
+.ntime{font-size:1.15rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.count{font-family:var(--f-display);font-size:2rem;color:var(--dusk);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.dayline{position:relative;height:46px;margin-top:4px}
+.dayline .track{position:absolute;inset:20px 0 auto;height:6px;border-radius:3px;
+  background:linear-gradient(to left,#1c3150 0%,#3a6e8f 20%,#f0c879 35%,#f6dfa0 55%,#e09a5b 72%,#1c3150 85%);opacity:.85}
+.dayline .mk{position:absolute;top:10px;transform:translateX(50%);display:flex;flex-direction:column;align-items:center;font-size:.68rem;color:var(--muted);white-space:nowrap}
+.dayline .mk i{width:2px;height:18px;background:var(--ink);opacity:.45;display:block}
+.dayline .now{position:absolute;top:14px;width:14px;height:14px;border-radius:50%;background:var(--dusk);border:3px solid var(--surface);transform:translateX(50%)}
+.grid6{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (min-width:620px){.grid6{grid-template-columns:repeat(6,1fr)}}
+.cell{border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;align-items:center;gap:0}
+.cell b{font-weight:500;font-size:.85rem;color:var(--muted)}
+.cell span{font-size:1.1rem;font-weight:600;font-variant-numeric:tabular-nums}
+.cell.on{border-color:var(--dusk);background:var(--today)}
+.cell.on span{color:var(--dusk)}
+.month-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.month-head h2{font-family:var(--f-display);font-weight:500;font-size:1.3rem;margin:0;text-align:center;flex:1}
+.month-head small{display:block;font-family:var(--f-body);font-size:.8rem;color:var(--muted)}
+button{font:inherit;background:var(--surface);color:var(--sea);border:1px solid var(--line);border-radius:10px;padding:6px 14px;cursor:pointer}
+button:hover{border-color:var(--sea)}
+button:focus-visible{outline:2px solid var(--sea);outline-offset:2px}
+.install{align-self:center;background:var(--sea);color:var(--surface);border-color:var(--sea);font-weight:600;padding:9px 22px;border-radius:12px}
+.install-help{font-size:.85rem;color:var(--muted);text-align:center;margin:0}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:520px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 8px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:600;font-size:.82rem;color:var(--muted);background:var(--bg);position:sticky;top:0}
+td.d{text-align:right;font-size:.85rem}
+td.d small{color:var(--muted);display:block;font-size:.75rem}
+tr.today td{background:var(--today);font-weight:600}
+tr.fri td.d{color:var(--sea)}
+tr:last-child td{border-bottom:0}
+.note{font-size:.82rem;color:var(--muted);max-width:65ch}
+footer{text-align:center;font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px;align-items:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="hrow">
+      <h1>مواقيت الصلاة · القنفذة</h1>
+      <div class="cal-switch" role="group" aria-label="التاريخ المعتمد">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        <button id="calH" type="button" aria-pressed="true">هجري</button>
+        <button id="calG" type="button" aria-pressed="false">ميلادي</button>
+      </div>
+    </div>
+    <div class="sub" id="dates"></div>
+  </header>
+
+  <section class="next" aria-live="polite">
+    <div class="next-top">
+      <div>
+        <div class="lbl">الصلاة القادمة</div>
+        <div class="nname" id="nname">—</div>
+        <div class="ntime" id="ntime"></div>
+      </div>
+      <div style="text-align:left">
+        <div class="lbl">باقي</div>
+        <div class="count" id="count">--:--:--</div>
+      </div>
+    </div>
+    <div class="dayline" id="dayline"><div class="track"></div></div>
+    <div class="grid6" id="todayGrid"></div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:12px">
+    <div class="month-head">
+      <button id="next" type="button" aria-label="الشهر التالي">التالي ›</button>
+      <h2 id="mtitle"></h2>
+      <button id="prev" type="button" aria-label="الشهر السابق">‹ السابق</button>
+    </div>
+    <div style="text-align:center"><button id="back" type="button">رجوع للشهر الحالي</button></div>
+    <div class="tbl"><table>
+      <thead><tr><th>اليوم</th><th>الفجر</th><th>الشروق</th><th>الظهر</th><th>العصر</th><th>المغرب</th><th>العشاء</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+    <p class="note">الأوقات محسوبة بطريقة تقويم أم القرى (الفجر عند ١٨٫٥ درجة، والعشاء بعد المغرب بساعة ونصف، وفي رمضان بساعتين) لإحداثيات القنفذة. قد تختلف دقيقة أو دقيقتين عن إعلان المسجد.</p>
+  </section>
+
+  <footer>
+    <button id="install" class="install" type="button">📲 ثبّت التطبيق على جوالك</button>
+    <p id="installHelp" class="install-help" hidden></p>
+    <div>تصميم وتطوير: أبو فيصل · fir@hotmail.com</div>
+  </footer>
+</div>
+
+<script>
+const LAT=19.5825, LNG=41.1109, TZ=3;
+const NAMES=["الفجر","الشروق","الظهر","العصر","المغرب","العشاء"];
+const rad=d=>d*Math.PI/180, deg=r=>r*180/Math.PI;
+const fix=(a,b)=>{a=a-b*Math.floor(a/b);return a<0?a+b:a};
+
+function sunPos(jd){
+  const D=jd-2451545.0;
+  const g=fix(357.529+0.98560028*D,360), q=fix(280.459+0.98564736*D,360);
+  const L=fix(q+1.915*Math.sin(rad(g))+0.020*Math.sin(rad(2*g)),360);
+  const e=23.439-0.00000036*D;
+  const RA=deg(Math.atan2(Math.cos(rad(e))*Math.sin(rad(L)),Math.cos(rad(L))))/15;
+  return {decl:deg(Math.asin(Math.sin(rad(e))*Math.sin(rad(L)))), eqt:q/15-fix(RA,24)};
+}
+function julian(y,m,d){if(m<=2){y--;m+=12}const A=Math.floor(y/100),B=2-A+Math.floor(A/4);
+  return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(m+1))+d+B-1524.5;}
+function isRamadan(date){
+  try{const p=new Intl.DateTimeFormat("en-u-ca-islamic-umalqura",{month:"numeric"}).formatToParts(date);
+    return Number(p.find(x=>x.type==="month").value)===9;}catch(e){return false}
+}
+// يرجع أوقات اليوم بالساعات العشرية بتوقيت السعودية
+function times(y,m,d){
+  const jd=julian(y,m,d)-LNG/(15*24);
+  const at=h=>sunPos(jd+h/24);
+  const noon=h=>fix(12-at(h).eqt,24);
+  const angleT=(ang,h,ccw)=>{const s=at(h),n=noon(h);
+    const T=deg(Math.acos((-Math.sin(rad(ang))-Math.sin(rad(s.decl))*Math.sin(rad(LAT)))/(Math.cos(rad(s.decl))*Math.cos(rad(LAT)))))/15;
+    return n+(ccw?-T:T);};
+  const asrT=h=>{const s=at(h);const a=-deg(Math.atan(1/(1+Math.tan(rad(Math.abs(LAT-s.decl))))));return angleT(a,h,false)};
+  let t={f:5,r:6,z:12,a:13,m:18};
+  for(let i=0;i<2;i++){t={f:angleT(18.5,t.f,true),r:angleT(0.833,t.r,true),z:noon(t.z),a:asrT(t.a),m:angleT(0.833,t.m,false)};}
+  const adj=TZ-LNG/15;
+  const fajr=t.f+adj, rise=t.r+adj, dhuhr=t.z+adj, asr=t.a+adj, maghrib=t.m+adj;
+  const isha=maghrib+(isRamadan(new Date(y,m-1,d,12))?2:1.5);
+  return [fajr,rise,dhuhr,asr,maghrib,isha];
+}
+const toMin=h=>Math.round(h*60);
+function fmt(h){let mn=toMin(h);let H=Math.floor(mn/60)%24,M=mn%60;
+  const ap=H<12?"ص":"م";let h12=H%12;if(h12===0)h12=12;
+  return h12+":"+String(M).padStart(2,"0")+" "+ap;}
+
+/* ---- عرض اليوم ---- */
+const hijriFmt=(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-latn",{day:"numeric",month:"long",year:"numeric"})}catch(e){return null}})();
+const gregFmt=new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+function saNow(){const n=new Date();return new Date(n.getTime()+(n.getTimezoneOffset()+TZ*60)*60000);}
+
+function renderToday(){
+  const now=saNow(), y=now.getFullYear(),m=now.getMonth()+1,d=now.getDate();
+  const t=times(y,m,d), nowH=now.getHours()+now.getMinutes()/60+now.getSeconds()/3600;
+  const gTxt=gregFmt.format(now), hTxt=hijriFmt?hijriFmt.format(now):"";
+  const wd=wdLong.format(now);
+  document.getElementById("dates").innerHTML=(cal==="h"&&hTxt)
+    ? `<strong>${wd} ${hTxt}</strong> · ${gregNoWd.format(now)} م`
+    : `<strong>${gTxt} م</strong>${hTxt?" · "+hTxt:""}`;
+  // القادمة (نتجاهل الشروق)
+  let idx=[0,2,3,4,5].find(i=>toMin(t[i])>Math.floor(nowH*60));
+  let target, name;
+  if(idx===undefined){const tm=new Date(y,m-1,d+1);const t2=times(tm.getFullYear(),tm.getMonth()+1,tm.getDate());
+    target=t2[0]+24;name=NAMES[0];document.getElementById("ntime").textContent="غدًا "+fmt(t2[0]);}
+  else{target=t[idx];name=NAMES[idx];document.getElementById("ntime").textContent=fmt(t[idx]);}
+  document.getElementById("nname").textContent=name;
+  let s=Math.max(0,Math.round(toMin(target)*60-nowH*3600));
+  const hh=Math.floor(s/3600),mm=Math.floor(s%3600/60),ss=s%60;
+  document.getElementById("count").textContent=[hh,mm,ss].map(x=>String(x).padStart(2,"0")).join(":");
+  // الخلايا
+  document.getElementById("todayGrid").innerHTML=t.map((h,i)=>`<div class="cell${i===idx?" on":""}"><b>${NAMES[i]}</b><span>${fmt(h).replace(/ [صم]$/,"")}</span></div>`).join("");
+  // شريط اليوم
+  const dl=document.getElementById("dayline");
+  dl.innerHTML='<div class="track"></div>'+t.map((h,i)=>`<div class="mk" style="right:${(h/24*100).toFixed(2)}%"><i></i>${i%2?"":NAMES[i]}</div>`).join("")+
+    `<div class="now" style="right:${(nowH/24*100).toFixed(2)}%" title="الآن"></div>`;
+  return d;
+}
+
+/* ---- جدول الشهر ---- */
+const hNum=(()=>{try{return new Intl.DateTimeFormat("en-u-ca-islamic-umalqura",{day:"numeric",month:"numeric",year:"numeric"})}catch(e){return null}})();
+const hijriOK=!!(hNum&&hijriFmt);
+let cal="h";
+try{const c=localStorage.getItem("prayer-cal");if(c==="g"||c==="h")cal=c;}catch(e){}
+if(!hijriOK){cal="g";document.querySelector(".cal-switch").hidden=true;}
+const wdLong=new Intl.DateTimeFormat("ar-SA",{weekday:"long"});
+const gregNoWd=new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn",{day:"numeric",month:"long",year:"numeric"});
+const monthFmt=new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn",{month:"long",year:"numeric"});
+const wdFmt=new Intl.DateTimeFormat("ar-SA",{weekday:"short"});
+const gShort=new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn",{day:"numeric",month:"short"});
+const hShort=(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-latn",{day:"numeric",month:"short"})}catch(e){return null}})();
+const hMonth=(()=>{try{return new Intl.DateTimeFormat("ar-SA-u-ca-islamic-umalqura-nu-latn",{month:"long",year:"numeric"})}catch(e){return null}})();
+const noonOf=n=>new Date(n.getFullYear(),n.getMonth(),n.getDate(),12);
+const addDays=(dt,k)=>new Date(dt.getFullYear(),dt.getMonth(),dt.getDate()+k,12);
+function hParts(dt){const p=hNum.formatToParts(dt);const g=t=>Number(p.find(x=>x.type===t).value);return {d:g("day"),m:g("month"),y:g("year")};}
+let ref=noonOf(saNow());   // أي يوم داخل الشهر المعروض
+// يرجع أول وآخر يوم في الشهر المعروض حسب التقويم المختار
+function monthRange(){
+  if(cal==="g") return [new Date(ref.getFullYear(),ref.getMonth(),1,12), new Date(ref.getFullYear(),ref.getMonth()+1,0,12)];
+  const hm=hParts(ref).m; let a=ref,b=ref;
+  while(hParts(addDays(a,-1)).m===hm) a=addDays(a,-1);
+  while(hParts(addDays(b,1)).m===hm) b=addDays(b,1);
+  return [a,b];
+}
+function renderMonth(){
+  const [first,last]=monthRange(), now=saNow();
+  document.getElementById("mtitle").innerHTML = cal==="h"
+    ? `${hMonth.format(first)}<small>${gShort.format(first)} – ${gShort.format(last)} ${last.getFullYear()} م</small>`
+    : `${monthFmt.format(first)} م`+(hMonth?`<small>${hMonth.format(first)} – ${hMonth.format(last)}</small>`:"");
+  let html="";
+  for(let dt=first; dt<=last; dt=addDays(dt,1)){
+    const y=dt.getFullYear(),m=dt.getMonth()+1,d=dt.getDate(), t=times(y,m,d);
+    const isToday=now.getFullYear()===y&&now.getMonth()+1===m&&now.getDate()===d;
+    const main = cal==="h" ? hParts(dt).d : d;
+    const second = cal==="h" ? gShort.format(dt) : (hShort?hShort.format(dt):"");
+    html+=`<tr class="${isToday?"today ":""}${dt.getDay()===5?"fri":""}"><td class="d">${wdFmt.format(dt)} ${main}${second?`<small>${second}</small>`:""}</td>`+
+      t.map(h=>`<td>${fmt(h).replace(/ [صم]$/,"")}</td>`).join("")+"</tr>";
+  }
+  document.getElementById("rows").innerHTML=html;
+}
+document.getElementById("prev").onclick=()=>{ref=addDays(monthRange()[0],-1);renderMonth()};
+document.getElementById("next").onclick=()=>{ref=addDays(monthRange()[1],1);renderMonth()};
+document.getElementById("back").onclick=()=>{ref=noonOf(saNow());renderMonth()};
+function setCal(c){
+  cal=c;
+  document.getElementById("calH").setAttribute("aria-pressed",c==="h");
+  document.getElementById("calG").setAttribute("aria-pressed",c==="g");
+  try{localStorage.setItem("prayer-cal",c)}catch(e){}
+  renderToday(); renderMonth();
+}
+document.getElementById("calH").onclick=()=>setCal("h");
+document.getElementById("calG").onclick=()=>setCal("g");
+
+setCal(cal);
+let lastDay=renderToday();
+setInterval(()=>{const d=renderToday();if(d!==lastDay){lastDay=d;ref=noonOf(saNow());renderMonth()}},1000);
+
+/* ---- زر التثبيت ---- */
+if("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(()=>{});
+let deferredPrompt=null;
+const installBtn=document.getElementById("install"), installHelp=document.getElementById("installHelp");
+const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
+if(standalone) installBtn.hidden=true;
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;});
+addEventListener("appinstalled",()=>{installBtn.hidden=true;installHelp.hidden=true;});
+installBtn.onclick=async()=>{
+  if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;return;}
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  installHelp.textContent=ios
+    ? "في الآيفون: اضغط زر المشاركة (المربع اللي فيه سهم) تحت، ثم «إضافة إلى الشاشة الرئيسية»."
+    : "من قائمة المتصفح (الثلاث نقاط فوق) اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».";
+  installHelp.hidden=false;
+};
+</script>
+</body>
+</html>
