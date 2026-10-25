@@ -4,21 +4,25 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>مواقيت القنفذة</title>
-<meta name="description" content="مواقيت الصلاة في القنفذة حسب تقويم أم القرى، مع عدّاد للصلاة القادمة وجدول الشهر">
+<meta name="description" content="مواقيت الصلاة في القنفذة بطريقة تقويم أم القرى، بالتاريخ الهجري والميلادي.">
 <meta name="theme-color" content="#0f6b70">
 <link rel="manifest" href="/manifest.json">
-<link rel="icon" href="/icon-192.png">
-<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" href="/icons/favicon.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="مواقيت">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
 <style>
+html{-webkit-text-size-adjust:100%}*,*::before,*::after{box-sizing:border-box}[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
 /* تخطيط: بطاقة الصلاة القادمة + شريط اليوم، ثم جدول الشهر */
 :root{
   --bg:#f5f2ea; --surface:#fffdf8; --ink:#16353a; --muted:#5d7377;
   --sea:#0f6b70; --dusk:#c8643b; --line:#ddd6c6; --today:#e4efe9;
   --f-display:"Reem Kufi","IBM Plex Sans Arabic",Tahoma,sans-serif;
   --f-body:"IBM Plex Sans Arabic",Tahoma,"Segoe UI",sans-serif;
-  color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0e1a1c; --surface:#142427; --ink:#e7efe9; --muted:#97aeab;
@@ -26,10 +30,7 @@
 :root[data-theme="dark"]{
   --bg:#0e1a1c; --surface:#142427; --ink:#e7efe9; --muted:#97aeab;
   --sea:#5cc2bd; --dusk:#ee9467; --line:#28403f; --today:#1d3a37; color-scheme:dark}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;direction:rtl;
-  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;direction:rtl}
 .wrap{max-width:760px;margin:0 auto;padding-block:24px 40px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   display:flex;flex-direction:column;gap:22px}
@@ -37,6 +38,9 @@ header{display:flex;flex-direction:column;gap:2px}
 h1{font-family:var(--f-display);font-weight:700;font-size:1.9rem;margin:0;color:var(--sea);text-wrap:balance}
 .sub{color:var(--muted);font-size:.92rem}
 .sub strong{color:var(--ink);font-weight:600}
+.install{margin-top:10px}
+.install button{background:var(--sea);color:var(--surface);border-color:var(--sea);font-weight:600}
+.install p{margin:0;font-size:.85rem;color:var(--ink);background:var(--today);border-radius:10px;padding:8px 12px}
 .hrow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .cal-switch{display:flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px}
 .cal-switch svg{width:20px;height:20px;margin:0 6px;fill:none;stroke:var(--sea);stroke-width:1.8;stroke-linecap:round}
@@ -61,14 +65,26 @@ h1{font-family:var(--f-display);font-weight:700;font-size:1.9rem;margin:0;color:
 .cell span{font-size:1.1rem;font-weight:600;font-variant-numeric:tabular-nums}
 .cell.on{border-color:var(--dusk);background:var(--today)}
 .cell.on span{color:var(--dusk)}
+.conv{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.conv-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.conv h2{font-family:var(--f-display);font-weight:500;font-size:1.3rem;margin:0}
+.conv-in{display:flex;flex-direction:column;gap:6px}
+.conv-in label{font-size:.85rem;color:var(--muted)}
+.conv input,.conv select{font:inherit;font-size:1rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.conv input:focus-visible,.conv select:focus-visible{outline:2px solid var(--sea);outline-offset:1px}
+.hsel{display:grid;grid-template-columns:4.5em 1fr 6em;gap:8px}
+.conv-out{border-top:1px dashed var(--line);padding-top:12px;display:flex;flex-direction:column;gap:6px}
+.conv-out .res{font-family:var(--f-display);font-size:1.5rem;color:var(--sea);line-height:1.3}
+.conv-out .wd{color:var(--muted);font-size:.9rem}
+.conv-out .err{color:var(--dusk);font-size:.95rem}
+.conv-out .mini{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.85rem;font-variant-numeric:tabular-nums}
+.conv-out .mini b{font-weight:500;color:var(--muted)}
 .month-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .month-head h2{font-family:var(--f-display);font-weight:500;font-size:1.3rem;margin:0;text-align:center;flex:1}
 .month-head small{display:block;font-family:var(--f-body);font-size:.8rem;color:var(--muted)}
 button{font:inherit;background:var(--surface);color:var(--sea);border:1px solid var(--line);border-radius:10px;padding:6px 14px;cursor:pointer}
 button:hover{border-color:var(--sea)}
 button:focus-visible{outline:2px solid var(--sea);outline-offset:2px}
-.install{align-self:center;background:var(--sea);color:var(--surface);border-color:var(--sea);font-weight:600;padding:9px 22px;border-radius:12px}
-.install-help{font-size:.85rem;color:var(--muted);text-align:center;margin:0}
 .tbl{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
 table{border-collapse:collapse;width:100%;min-width:520px;font-variant-numeric:tabular-nums}
 th,td{padding:7px 8px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -79,9 +95,10 @@ tr.today td{background:var(--today);font-weight:600}
 tr.fri td.d{color:var(--sea)}
 tr:last-child td{border-bottom:0}
 .note{font-size:.82rem;color:var(--muted);max-width:65ch}
-footer{text-align:center;font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:10px;align-items:center}
+footer{text-align:center;font-size:.82rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
+
 </head>
 <body>
 <div class="wrap">
@@ -95,6 +112,10 @@ footer{text-align:center;font-size:.82rem;color:var(--muted);border-top:1px soli
       </div>
     </div>
     <div class="sub" id="dates"></div>
+    <div class="install" id="installBox" hidden>
+      <button id="installBtn" type="button" hidden>⬇ تثبيت التطبيق على جهازك</button>
+      <p id="iosHint" hidden>للتثبيت على الآيفون: اضغط زر المشاركة <b>⬆</b> تحت في سفاري، ثم اختر «إضافة إلى الشاشة الرئيسية».</p>
+    </div>
   </header>
 
   <section class="next" aria-live="polite">
@@ -113,6 +134,29 @@ footer{text-align:center;font-size:.82rem;color:var(--muted);border-top:1px soli
     <div class="grid6" id="todayGrid"></div>
   </section>
 
+  <section class="conv" id="conv">
+    <div class="conv-head">
+      <h2>تحويل التاريخ</h2>
+      <div class="cal-switch" role="group" aria-label="اتجاه التحويل">
+        <button id="modeG" type="button" aria-pressed="true">من ميلادي</button>
+        <button id="modeH" type="button" aria-pressed="false">من هجري</button>
+      </div>
+    </div>
+    <div class="conv-in" id="inG">
+      <label for="gDate">اختر التاريخ الميلادي</label>
+      <input type="date" id="gDate" min="1937-03-14" max="2077-11-15">
+    </div>
+    <div class="conv-in" id="inH" hidden>
+      <label>اختر التاريخ الهجري</label>
+      <div class="hsel">
+        <select id="hDay" aria-label="اليوم"></select>
+        <select id="hMon" aria-label="الشهر"></select>
+        <input type="number" id="hYear" inputmode="numeric" min="1356" max="1500" aria-label="السنة">
+      </div>
+    </div>
+    <div class="conv-out" id="convOut"></div>
+  </section>
+
   <section style="display:flex;flex-direction:column;gap:12px">
     <div class="month-head">
       <button id="next" type="button" aria-label="الشهر التالي">التالي ›</button>
@@ -127,11 +171,7 @@ footer{text-align:center;font-size:.82rem;color:var(--muted);border-top:1px soli
     <p class="note">الأوقات محسوبة بطريقة تقويم أم القرى (الفجر عند ١٨٫٥ درجة، والعشاء بعد المغرب بساعة ونصف، وفي رمضان بساعتين) لإحداثيات القنفذة. قد تختلف دقيقة أو دقيقتين عن إعلان المسجد.</p>
   </section>
 
-  <footer>
-    <button id="install" class="install" type="button">📲 ثبّت التطبيق على جوالك</button>
-    <p id="installHelp" class="install-help" hidden></p>
-    <div>تصميم وتطوير: أبو فيصل · fir@hotmail.com</div>
-  </footer>
+  <footer>تصميم وتطوير: أبو فيصل · fir@hotmail.com</footer>
 </div>
 
 <script>
@@ -262,25 +302,79 @@ document.getElementById("calH").onclick=()=>setCal("h");
 document.getElementById("calG").onclick=()=>setCal("g");
 
 setCal(cal);
+
+/* ---- تحويل التاريخ ---- */
+(function(){
+  const out=document.getElementById("convOut");
+  if(!hijriOK){document.getElementById("modeH").hidden=true;}
+  const HMONTHS=["محرم","صفر","ربيع الأول","ربيع الآخر","جمادى الأولى","جمادى الآخرة","رجب","شعبان","رمضان","شوال","ذو القعدة","ذو الحجة"];
+  const hDay=document.getElementById("hDay"),hMon=document.getElementById("hMon"),hYear=document.getElementById("hYear"),gDate=document.getElementById("gDate");
+  for(let i=1;i<=30;i++)hDay.add(new Option(i,i));
+  HMONTHS.forEach((n,i)=>hMon.add(new Option(n,i+1)));
+  const today=noonOf(saNow());
+  const pad=n=>String(n).padStart(2,"0");
+  gDate.value=today.getFullYear()+"-"+pad(today.getMonth()+1)+"-"+pad(today.getDate());
+  if(hijriOK){const h=hParts(today);hDay.value=h.d;hMon.value=h.m;hYear.value=h.y;}
+  let mode="g";
+  const fullG=new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn",{day:"numeric",month:"long",year:"numeric"});
+  function show(dt){
+    const t=times(dt.getFullYear(),dt.getMonth()+1,dt.getDate());
+    const res = mode==="g" ? hijriFmt.format(dt) : fullG.format(dt)+" م";
+    const other = mode==="g" ? fullG.format(dt)+" م" : hijriFmt.format(dt);
+    out.innerHTML=`<div class="res">${res}</div><div class="wd">يوم ${wdLong.format(dt)} · يوافق ${other}</div>`+
+      `<div class="mini">${t.map((h,i)=>`<span><b>${NAMES[i]}</b> ${fmt(h)}</span>`).join("")}</div>`;
+  }
+  function err(msg){out.innerHTML=`<div class="err">${msg}</div>`;}
+  // من هجري إلى ميلادي: نقدّر اليوم بالحساب ثم ندوّر حوله في تقويم أم القرى
+  function fromHijri(y,m,d){
+    const jd=Math.floor((11*y+3)/30)+354*y+30*m-Math.floor((m-1)/2)+d+1948440-385;
+    const guess=new Date((jd-2440587.5)*86400000);
+    const base=new Date(guess.getUTCFullYear(),guess.getUTCMonth(),guess.getUTCDate(),12);
+    for(let k=0;k<=12;k++){for(const s of k?[k,-k]:[0]){
+      const dt=addDays(base,s),h=hParts(dt);
+      if(h.y===y&&h.m===m&&h.d===d)return dt;}}
+    return null;
+  }
+  function run(){
+    if(mode==="g"){
+      const v=gDate.value;
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(v))return err("اختر تاريخ ميلادي كامل (اليوم والشهر والسنة).");
+      const [y,m,d]=v.split("-").map(Number);
+      if(y<1937||y>2077)return err("اختر سنة بين 1937 و 2077.");
+      show(new Date(y,m-1,d,12));
+    }else{
+      const y=Number(hYear.value),m=Number(hMon.value),d=Number(hDay.value);
+      if(!y||y<1356||y>1500)return err("اكتب سنة هجرية بين 1356 و 1500.");
+      const dt=fromHijri(y,m,d);
+      if(!dt)return err(d===30?`شهر ${HMONTHS[m-1]} سنة ${y} عدده 29 يوم فقط في تقويم أم القرى.`:"ما قدرت أحوّل هذا التاريخ، تأكد منه.");
+      show(dt);
+    }
+  }
+  function setMode(md){mode=md;
+    document.getElementById("modeG").setAttribute("aria-pressed",md==="g");
+    document.getElementById("modeH").setAttribute("aria-pressed",md==="h");
+    document.getElementById("inG").hidden=md!=="g";document.getElementById("inH").hidden=md!=="h";run();}
+  document.getElementById("modeG").onclick=()=>setMode("g");
+  document.getElementById("modeH").onclick=()=>setMode("h");
+  [gDate,hDay,hMon,hYear].forEach(el=>{el.addEventListener("input",run);el.addEventListener("change",run);});
+  run();
+})();
 let lastDay=renderToday();
 setInterval(()=>{const d=renderToday();if(d!==lastDay){lastDay=d;ref=noonOf(saNow());renderMonth()}},1000);
 
-/* ---- زر التثبيت ---- */
-if("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(()=>{});
-let deferredPrompt=null;
-const installBtn=document.getElementById("install"), installHelp=document.getElementById("installHelp");
-const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
-if(standalone) installBtn.hidden=true;
-addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;});
-addEventListener("appinstalled",()=>{installBtn.hidden=true;installHelp.hidden=true;});
-installBtn.onclick=async()=>{
-  if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;return;}
-  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
-  installHelp.textContent=ios
-    ? "في الآيفون: اضغط زر المشاركة (المربع اللي فيه سهم) تحت، ثم «إضافة إلى الشاشة الرئيسية»."
-    : "من قائمة المتصفح (الثلاث نقاط فوق) اختر «تثبيت التطبيق» أو «إضافة إلى الشاشة الرئيسية».";
-  installHelp.hidden=false;
-};
+/* ---- التثبيت كتطبيق ---- */
+if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));}
+(function(){
+  const box=document.getElementById("installBox"),btn=document.getElementById("installBtn"),ios=document.getElementById("iosHint");
+  const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+  if(standalone) return;
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  if(isIOS){box.hidden=false;ios.hidden=false;return;}
+  let deferred=null;
+  addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;box.hidden=false;btn.hidden=false;});
+  btn.addEventListener("click",async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;box.hidden=true;});
+  addEventListener("appinstalled",()=>{box.hidden=true;});
+})();
 </script>
 </body>
 </html>

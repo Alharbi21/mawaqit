@@ -1,23 +1,25 @@
-// يخزّن الصفحة عشان تشتغل بدون نت
-const CACHE = "mawaqit-v1";
-const FILES = ["/", "/index.html", "/manifest.json", "/icon-192.png", "/icon-512.png"];
+// عامل يخلي التطبيق يشتغل بدون إنترنت
+const CACHE = "salah-v2";
+const FILES = ["/", "/index.html", "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/favicon.png", "/icons/apple-touch-icon.png"];
+
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)));
-  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))));
-  self.clients.claim();
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener("fetch", e => {
-  if (e.request.method !== "GET") return;
-  e.respondWith(
-    fetch(e.request).then(r => {
-      if (r.ok && new URL(e.request.url).origin === location.origin) {
-        const copy = r.clone();
-        caches.open(CACHE).then(c => c.put(e.request, copy));
-      }
-      return r;
-    }).catch(() => caches.match(e.request).then(r => r || caches.match("/")))
-  );
+  const req = e.request;
+  if (req.method !== "GET") return;
+  // الصفحة: نجرب النت أول عشان التحديثات توصل، وإذا ما فيه نت نعرض المحفوظ
+  if (req.mode === "navigate") {
+    e.respondWith(fetch(req).then(r => { const copy = r.clone(); caches.open(CACHE).then(c => c.put("/", copy)); return r; })
+      .catch(() => caches.match("/")));
+    return;
+  }
+  // الباقي (الخطوط والأيقونات): من المحفوظ أول، ونحدّثه بالخلفية
+  e.respondWith(caches.match(req).then(hit => {
+    const net = fetch(req).then(r => { if (r && (r.ok || r.type === "opaque")) { const copy = r.clone(); caches.open(CACHE).then(c => c.put(req, copy)); } return r; }).catch(() => hit);
+    return hit || net;
+  }));
 });
